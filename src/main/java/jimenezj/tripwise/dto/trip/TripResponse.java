@@ -2,7 +2,7 @@ package jimenezj.tripwise.dto.trip;
 
 
 
-public record TripResponseDTO(  
+public record TripResponse(
         int id,
         String tripName,
         String destiny,
