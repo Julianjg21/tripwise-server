@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public record ExpenseRequestDTO(
+public record ExpenseRequest(
         @NotBlank @Size(min = 3, max = 500) String description,
         @Min(0) double amount, 
         @Min(1) int categoryId, 
