@@ -1,11 +1,12 @@
 package jimenezj.tripwise.dto.trip;
 
 
+import java.time.LocalDate;
 
 public record TripResponse(
-        int id,
-        String tripName,
+        Long id,
+        String name,
         String destiny,
-        String startDate,
-        String endDate) {
+        LocalDate startDate,
+        LocalDate endDate) {
 }
