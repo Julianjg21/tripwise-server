@@ -1,4 +1,5 @@
 package jimenezj.tripwise.controller;
+
 import jakarta.validation.Valid;
 import jimenezj.tripwise.dto.auth.*;
 import jimenezj.tripwise.service.AuthService;
@@ -11,14 +12,14 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // Injecting the auth service
+    // Injecting dependencies
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
 
     // Login endpoint
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody  @Valid LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody @Valid LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
 
@@ -28,7 +29,6 @@ public class AuthController {
         authService.signup(request);
         return ResponseEntity.ok("Successfully registered user.");
     }
-    
 
     // Refresh JWT token
     @PostMapping("/refreshToken")
