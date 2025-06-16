@@ -1,12 +1,12 @@
 package jimenezj.tripwise.controller;
+import jakarta.validation.Valid;
 import jimenezj.tripwise.dto.auth.*;
-import jimenezj.tripwise.dto.user.UserProfileResponse;
 import jimenezj.tripwise.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     private final AuthService authService;
@@ -18,26 +18,21 @@ public class AuthController {
 
     // Login endpoint
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody  @Valid LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
 
     // Signup endpoint
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody SignupRequest request) {
+    public ResponseEntity<String> signup(@RequestBody @Valid SignupRequest request) {
         authService.signup(request);
         return ResponseEntity.ok("Successfully registered user.");
     }
-
-    // Get info of the currently authenticated user
-    @GetMapping("/userInfo")
-    public ResponseEntity<UserProfileResponse> getAuthenticatedUser() {
-        return ResponseEntity.ok(authService.getAuthenticatedUser());
-    }
+    
 
     // Refresh JWT token
     @PostMapping("/refreshToken")
-    public ResponseEntity<AuthRefreshResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<AuthRefreshResponse> refreshToken(@RequestBody @Valid RefreshTokenRequest request) {
         return ResponseEntity.ok(authService.refreshToken(request));
     }
 }
