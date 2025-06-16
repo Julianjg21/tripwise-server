@@ -1,11 +1,16 @@
 package jimenezj.tripwise.dto.expense;
 
 
+import jimenezj.tripwise.model.ExpenseCategory;
+
+import java.time.LocalDate;
+
 public record ExpenseResponse(
-        int id,
-        String tripName,
-        String destiny,
-        String startDate,
-        String endDate
+        long id,
+        String description,
+        double amount,
+        ExpenseCategory expenseCategory,
+        LocalDate date
 ) {
 }
+
