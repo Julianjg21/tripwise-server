@@ -18,23 +18,16 @@ public class ExpenseCategory {
     @OneToMany(mappedBy = "expenseCategory")
     private List<Expense> expenses;
 
-
     // Constructors
-    public ExpenseCategory() {}
+    public ExpenseCategory() {
+    }
+
     public ExpenseCategory(ExpenseCategoryEnum name) {
         this.name = name;
     }
 
     // Getters y setters
-    public Long getId() {
-        return id;
-    }
-
-    public ExpenseCategoryEnum getName() {
-        return name;
-    }
-
-    public void setName(ExpenseCategoryEnum name) {
-        this.name = name;
-    }
+    public Long getId() { return id;}
+    public ExpenseCategoryEnum getName() { return name;}
+    public void setName(ExpenseCategoryEnum name) {this.name = name;}
 }
