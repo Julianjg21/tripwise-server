@@ -1,7 +1,6 @@
 package jimenezj.tripwise.service.impl;
 
 import jimenezj.tripwise.dto.auth.*;
-import jimenezj.tripwise.dto.user.UserProfileResponse;
 import jimenezj.tripwise.exception.BadRequestException;
 import jimenezj.tripwise.model.RefreshToken;
 import jimenezj.tripwise.model.User;
@@ -15,9 +14,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,18 +23,18 @@ import java.time.Instant;
 @Service
 public class AuthServiceImpl implements AuthService {
 
-    private UserRepository userRepository;
-    private PasswordEncoder passwordEncoder;
-    private JwtUtils jwtUtils;
-    private RefreshTokenRepository refreshTokenRepository;
-    private AuthenticationManager authenticationManager;
-    private UserDetailsService userDetailsService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final AuthenticationManager authenticationManager;
 
-    public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtils jwtUtils, UserDetailsService userDetailsService, AuthenticationManager authenticationManager, RefreshTokenRepository refreshTokenRepository) {
+    // Injecting dependencies
+    public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtils jwtUtils,
+            AuthenticationManager authenticationManager, RefreshTokenRepository refreshTokenRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
-        this.userDetailsService = userDetailsService;
         this.authenticationManager = authenticationManager;
         this.refreshTokenRepository = refreshTokenRepository;
     }
@@ -48,8 +45,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             // Tries to authenticate the user with the provided credentials
             authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.email(), request.password())
-            );
+                    new UsernamePasswordAuthenticationToken(request.email(), request.password()));
         } catch (AuthenticationException ex) {
             // Invalid credentials
             throw new BadCredentialsException("Incorrect mail or password");
@@ -70,13 +66,24 @@ public class AuthServiceImpl implements AuthService {
         return new AuthResponse(accessToken, refreshToken);
     }
 
-    // Stores new refresh token and removes previous one (if any)
+    /**
+     * Replaces any existing refresh token for the given user with a new one.
+     * If a previous token exists, it is deleted before saving the new one.
+     */
     private void saveRefreshToken(User user, String tokenString) {
-        refreshTokenRepository.findByUser_Id(user.getId()).ifPresent(refreshTokenRepository::delete);
+        // Delete any existing refresh token for the user
+        refreshTokenRepository.findByUser_Id(user.getId())
+                .ifPresent(refreshTokenRepository::delete);
 
-        long refreshTokenValidity = 1000L * 60 * 60 * 24 * 7; // 7 days
+        // Set refresh token validity duration: 7 days (in milliseconds)
+        long refreshTokenValidity = 1000L * 60 * 60 * 24 * 7;
 
-        RefreshToken newRefreshToken = new RefreshToken(tokenString, Instant.now().plusMillis(refreshTokenValidity), user);
+        // Create and store the new refresh token with expiration
+        RefreshToken newRefreshToken = new RefreshToken(
+                tokenString,
+                Instant.now().plusMillis(refreshTokenValidity),
+                user);
+
         refreshTokenRepository.save(newRefreshToken);
     }
 
@@ -84,7 +91,7 @@ public class AuthServiceImpl implements AuthService {
     public void signup(SignupRequest request) throws BadRequestException {
         // Check if email already exists
         if (userRepository.existsByEmail((request.email()))) {
-            throw new BadRequestException("El correo ya está registrado");
+            throw new BadRequestException("The mail is already registered");
         }
 
         // Create new user with hashed password
@@ -93,41 +100,38 @@ public class AuthServiceImpl implements AuthService {
         newUser.setFullName(request.fullName());
         newUser.setPassword(passwordEncoder.encode(request.password()));
 
-        userRepository.save(newUser);
+        userRepository.save(newUser);// Save the new user to the database
     }
 
     @Override
     public AuthRefreshResponse refreshToken(RefreshTokenRequest request) {
         String requestRefreshToken = request.token();
 
-        return refreshTokenRepository.findByToken(requestRefreshToken)
-                .map(this::verifyExpiration)
-                .map(RefreshToken::getUser)
+        return refreshTokenRepository.findByToken(requestRefreshToken) // Look for the refresh token in the database
+                .map(this::verifyExpiration) // Ensure the token hasn't expired
+                .map(RefreshToken::getUser) // Get the user associated with the token
                 .map(user -> {
-                    // New access token, same refresh token
-                    String accessToken = jwtUtils.generateAccessToken(user);
+                    // Wrap the user in a UserDetails implementation
+                    UserDetailsImpl userDetails = new UserDetailsImpl(user);
+
+                    // Generate a new access token for the user
+                    String accessToken = jwtUtils.generateAccessToken(userDetails);
+
+                    // Return the new access token along with the same refresh token
                     return new AuthRefreshResponse(accessToken, requestRefreshToken);
-                }).orElseThrow(() -> new BadRequestException("Invalid refresh token"));
+                })
+                .orElseThrow(() -> new BadRequestException("Invalid refresh token")); // If token is not found, throw error
+                                                                                    
     }
 
     // If token is expired, delete it and throw exception
     private RefreshToken verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().isBefore(Instant.now())) {
+            // If the token is expired, delete it from the repository
             refreshTokenRepository.delete(token);
             throw new BadRequestException("Refresh token has expired. Please log in again.");
         }
-        return token;
+        return token;// If the token is valid, return it
     }
 
-    public UserProfileResponse getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new BadRequestException("User not authenticated");
-        }
-
-        // Extract user from security context and return profile info
-        UserDetailsImpl user =  (UserDetailsImpl) authentication.getPrincipal();
-        return new UserProfileResponse(user.getId(), user.getEmail(), user.getFullName());
-    }
 }
