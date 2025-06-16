@@ -1,4 +1,5 @@
 package jimenezj.tripwise.config;
+
 import jimenezj.tripwise.security.jwt.AuthTokenFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,15 +29,14 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // Disable CSRF (not needed for stateless APIs)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll() // Public endpoints
+                        .requestMatchers("/api/auth/**").permitAll() // Allow public access to authentication endpoints
                         .anyRequest().authenticated() // All other requests require authentication
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless session
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless
+                                                                                                              // session
                 .authenticationProvider(authenticationProvider) // Set custom auth provider
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter
 
         return http.build();
     }
 }
-
-
