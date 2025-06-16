@@ -7,11 +7,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 
+
 public class UserDetailsImpl implements UserDetails {
-    private Long id;
-    private String email;
-    private String password;
-    private String fullName;
+    private final Long id;
+    private final String email;
+    private final String password;
+    private final String fullName;
+    private final  User user;
 
     // Constructor that maps our User model to Spring Security's UserDetails
     public UserDetailsImpl(User user) {
@@ -19,7 +21,15 @@ public class UserDetailsImpl implements UserDetails {
         this.password = user.getPassword();
         this.fullName = user.getFullName();
         this.id = user.getId();
+        this.user = user;
     }
+    //Constructor
+    public User getUser() {
+        return user;
+    }
+
+
+    //Getters and Setters
 
     //We do not use roles at this time, but they are added for future implementations
     @Override

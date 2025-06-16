@@ -1,5 +1,6 @@
 package jimenezj.tripwise.security.impl;
 import jimenezj.tripwise.exception.BadRequestException;
+import jimenezj.tripwise.model.User;
 import jimenezj.tripwise.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -10,8 +11,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
-
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     // Injecting the user repository
     public UserDetailsServiceImpl(UserRepository userRepository) {
@@ -27,12 +27,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     }
 
     // Returns the currently authenticated user
-    public UserDetails getAuthenticatedUser() {
+    public UserDetailsImpl getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new BadRequestException("User not found");
         }
-        return (UserDetails) authentication.getPrincipal();
+        return (UserDetailsImpl) authentication.getPrincipal();
     }
 }
 
