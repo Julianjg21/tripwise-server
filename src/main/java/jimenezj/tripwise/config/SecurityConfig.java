@@ -29,11 +29,13 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // Disable CSRF (not needed for stateless APIs)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // Allow public access to authentication endpoints
+                        .requestMatchers("/api/auth/**",
+                                "/api/password-reset/**")
+                        .permitAll() // Allow public access to authentication endpoints
                         .anyRequest().authenticated() // All other requests require authentication
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless
-                                                                                                              // session
+                // session
                 .authenticationProvider(authenticationProvider) // Set custom auth provider
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter
 
