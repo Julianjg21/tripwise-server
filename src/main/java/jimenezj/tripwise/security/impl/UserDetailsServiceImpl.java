@@ -1,6 +1,5 @@
 package jimenezj.tripwise.security.impl;
 import jimenezj.tripwise.exception.BadRequestException;
-import jimenezj.tripwise.model.User;
 import jimenezj.tripwise.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,4 +34,3 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return (UserDetailsImpl) authentication.getPrincipal();
     }
 }
-
