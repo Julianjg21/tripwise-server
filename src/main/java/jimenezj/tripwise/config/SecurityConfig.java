@@ -51,10 +51,13 @@ public class SecurityConfig {
                 }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/password-reset/**").permitAll() //
-                        .anyRequest().authenticated()
+                        .requestMatchers(
+                                "/api/auth/**",
+                                            "/api/password-reset/**") // Public endpoints that do not require authentication
+                                            .permitAll()
+                        .anyRequest().authenticated() // All other requests require authentication
                 )
-                .authenticationProvider(authenticationProvider)
+                .authenticationProvider(authenticationProvider) // Set the custom authentication provider
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
