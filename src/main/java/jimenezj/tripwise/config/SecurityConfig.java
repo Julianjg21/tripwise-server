@@ -1,6 +1,9 @@
 package jimenezj.tripwise.config;
 
+import jimenezj.tripwise.security.csrf.CsrfProtectedEndpoints;
 import jimenezj.tripwise.security.jwt.AuthTokenFilter;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -9,35 +12,50 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private AuthenticationProvider authenticationProvider;
+    private final AuthenticationProvider authenticationProvider;
     private final AuthTokenFilter authTokenFilter;
 
-    // Injecting dependencies
+    @Value("${security.cors.allowed-origins}")
+    String corsAllowedOrigin;
+
+    // Constructor injection for dependencies
     public SecurityConfig(AuthenticationProvider authenticationProvider, AuthTokenFilter authTokenFilter) {
         this.authenticationProvider = authenticationProvider;
         this.authTokenFilter = authTokenFilter;
     }
 
-    // Security configuration
+    // Configures the security filter chain for the application
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Disable CSRF (not needed for stateless APIs)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**",
-                                "/api/password-reset/**")
-                        .permitAll() // Allow public access to authentication endpoints
-                        .anyRequest().authenticated() // All other requests require authentication
+                .csrf(csrf -> csrf  // Enable CSRF protection
+                        .requireCsrfProtectionMatcher(new CsrfProtectedEndpoints()) // Custom matcher for CSRF protection
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) // Use cookie-based CSRF token repository
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless
-                // session
-                .authenticationProvider(authenticationProvider) // Set custom auth provider
-                .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowedOrigins(List.of(corsAllowedOrigin));
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+                    config.setAllowCredentials(true);
+                    config.setAllowedHeaders(List.of("*"));
+                    return config;
+                }))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**", "/api/password-reset/**").permitAll() //
+                        .anyRequest().authenticated()
+                )
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
