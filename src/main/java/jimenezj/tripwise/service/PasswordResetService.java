@@ -4,7 +4,7 @@ import jimenezj.tripwise.dto.reset_password.CreatePasswordResetRequest;
 import jimenezj.tripwise.dto.reset_password.PasswordResetRequest;
 
 // This interface defines the contract for password reset operations.
-public interface PasswordReset {
+public interface PasswordResetService {
 
      // Method to create a password reset request
      void createResetPassword(CreatePasswordResetRequest request);
