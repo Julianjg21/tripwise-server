@@ -1,5 +1,7 @@
 package jimenezj.tripwise.service.impl;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jimenezj.tripwise.dto.auth.*;
 import jimenezj.tripwise.exception.BadRequestException;
 import jimenezj.tripwise.model.RefreshToken;
@@ -40,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponse login(LoginRequest request) {
+    public AuthTokens login(LoginRequest request) {
         Authentication authentication;
         try {
             // Tries to authenticate the user with the provided credentials
@@ -63,7 +65,8 @@ public class AuthServiceImpl implements AuthService {
         // Save refresh token in DB
         saveRefreshToken(user, refreshToken);
 
-        return new AuthResponse(accessToken, refreshToken);
+        // Return the tokens wrapped in AuthTokens object
+        return new AuthTokens(accessToken, refreshToken);
     }
 
     /**
@@ -104,8 +107,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthRefreshResponse refreshToken(RefreshTokenRequest request) {
-        String requestRefreshToken = request.token();
+    public AuthTokens refreshToken(HttpServletRequest request) {
+        String requestRefreshToken = extractRefreshTokenFromCookies(request);
 
         return refreshTokenRepository.findByToken(requestRefreshToken) // Look for the refresh token in the database
                 .map(this::verifyExpiration) // Ensure the token hasn't expired
@@ -118,10 +121,24 @@ public class AuthServiceImpl implements AuthService {
                     String accessToken = jwtUtils.generateAccessToken(userDetails);
 
                     // Return the new access token along with the same refresh token
-                    return new AuthRefreshResponse(accessToken, requestRefreshToken);
+                    return new AuthTokens(accessToken, requestRefreshToken);
                 })
                 .orElseThrow(() -> new BadRequestException("Invalid refresh token")); // If token is not found, throw error
-                                                                                    
+
+    }
+
+    // Extracts the refresh token from the HttpOnly cookie in the request
+    private String extractRefreshTokenFromCookies(HttpServletRequest request) {
+        // Check if the request has cookies and find the refresh token cookie
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    return cookie.getValue(); // Return the value of the refresh token cookie
+                }
+            }
+        }
+        // If no refresh token cookie is found, throw an exception
+        throw new BadRequestException("Refresh token cookie not found");
     }
 
     // If token is expired, delete it and throw exception
