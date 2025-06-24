@@ -3,7 +3,7 @@ package jimenezj.tripwise.controller;
 import jakarta.validation.Valid;
 import jimenezj.tripwise.dto.reset_password.CreatePasswordResetRequest;
 import jimenezj.tripwise.dto.reset_password.PasswordResetRequest;
-import jimenezj.tripwise.service.impl.PasswordResetService;
+import jimenezj.tripwise.service.impl.PasswordResetServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/password-reset")
 public class PasswordResetController {
 
-    private final PasswordResetService passwordResetService;
+    private final PasswordResetServiceImpl passwordResetService;
 
     // Injecting dependencies
-    public PasswordResetController(PasswordResetService passwordResetService) {
+    public PasswordResetController(PasswordResetServiceImpl passwordResetService) {
         this.passwordResetService = passwordResetService;
     }
 
