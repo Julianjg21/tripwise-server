@@ -9,7 +9,7 @@ import jimenezj.tripwise.model.PasswordResetToken;
 import jimenezj.tripwise.model.User;
 import jimenezj.tripwise.repository.PasswordResetRepository;
 import jimenezj.tripwise.repository.UserRepository;
-import jimenezj.tripwise.service.PasswordReset;
+import jimenezj.tripwise.service.PasswordResetService;
 import jimenezj.tripwise.utils.HtmlTemplateLoader;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 
 @Service
-public class PasswordResetService implements PasswordReset {
+public class PasswordResetServiceImpl implements PasswordResetService {
 
     private final UserRepository userRepository;
     private final PasswordResetRepository passwordResetRepository;
@@ -36,8 +36,8 @@ public class PasswordResetService implements PasswordReset {
      String resetPasswordClientLink;
 
     // Constructor injection for dependencies
-    public PasswordResetService(UserRepository userRepository, PasswordResetRepository passwordResetRepository,
-            PasswordEncoder passwordEncoder, JavaMailSender mailSender, HtmlTemplateLoader htmlTemplateLoader) {
+    public PasswordResetServiceImpl(UserRepository userRepository, PasswordResetRepository passwordResetRepository,
+                                    PasswordEncoder passwordEncoder, JavaMailSender mailSender, HtmlTemplateLoader htmlTemplateLoader) {
         this.userRepository = userRepository;
         this.passwordResetRepository = passwordResetRepository;
         this.passwordEncoder = passwordEncoder;
