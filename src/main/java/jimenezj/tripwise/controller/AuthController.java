@@ -7,6 +7,7 @@ import jimenezj.tripwise.dto.auth.*;
 import jimenezj.tripwise.service.AuthService;
 import jimenezj.tripwise.service.CsrfService;
 import jimenezj.tripwise.service.HttpOnlyCookieService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,7 +48,8 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody @Valid SignupRequest request) {
         authService.signup(request);
-        return ResponseEntity.ok("Successfully registered user.");
+        return ResponseEntity.status(HttpStatus.CREATED).body("Successfully registered user.");
+
     }
 
     // Refresh JWT token
