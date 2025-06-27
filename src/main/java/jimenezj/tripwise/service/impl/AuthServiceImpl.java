@@ -4,6 +4,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jimenezj.tripwise.dto.auth.*;
 import jimenezj.tripwise.exception.BadRequestException;
+import jimenezj.tripwise.exception.DuplicateResourceException;
 import jimenezj.tripwise.model.RefreshToken;
 import jimenezj.tripwise.model.User;
 import jimenezj.tripwise.repository.RefreshTokenRepository;
@@ -94,7 +95,7 @@ public class AuthServiceImpl implements AuthService {
     public void signup(SignupRequest request) throws BadRequestException {
         // Check if email already exists
         if (userRepository.existsByEmail((request.email()))) {
-            throw new BadRequestException("The mail is already registered");
+            throw new DuplicateResourceException("The mail is already registered");
         }
 
         // Create new user with hashed password
