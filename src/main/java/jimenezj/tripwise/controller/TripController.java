@@ -5,9 +5,10 @@ import jakarta.validation.constraints.Min;
 import jimenezj.tripwise.dto.trip.TripRequest;
 import jimenezj.tripwise.dto.trip.TripResponse;
 import jimenezj.tripwise.service.TripService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/trips")
@@ -22,10 +23,14 @@ public class TripController {
 
     // Get all trips by user id
     @GetMapping
-    public ResponseEntity<List<TripResponse>> getAllTrips() {
-        List<TripResponse> tripsResponse = tripService.getAllTrips();
-        return ResponseEntity.ok(tripsResponse);
+    public ResponseEntity<Page<TripResponse>> getAllTrips(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<TripResponse> tripResponsePage = tripService.getAllTrips(page, size);
+        return ResponseEntity.ok(tripResponsePage);
     }
+
 
     // Create trip for a user
     @PostMapping

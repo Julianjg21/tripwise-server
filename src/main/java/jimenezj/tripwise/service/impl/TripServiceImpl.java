@@ -10,10 +10,11 @@ import jimenezj.tripwise.model.User;
 import jimenezj.tripwise.repository.TripRepository;
 import jimenezj.tripwise.security.impl.UserDetailsServiceImpl;
 import jimenezj.tripwise.service.TripService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TripServiceImpl implements TripService {
@@ -27,22 +28,26 @@ public class TripServiceImpl implements TripService {
         this.userDetailsServiceImpl = userDetailsServiceImpl;
     }
 
-    // Get all trips by user id
     @Override
-    public List<TripResponse> getAllTrips() {
-        Long userId = userDetailsServiceImpl.getAuthenticatedUser().getId(); // Get authenticated user Id
-        List<Trip> trips = tripRepository.findAllByUserId(userId); // get all trips by userId
+    public Page<TripResponse> getAllTrips(int page, int size) {
+        Long userId = userDetailsServiceImpl.getAuthenticatedUser().getId(); // Get authenticated user ID
 
-        if (trips.isEmpty()) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Trip> tripPage = tripRepository.findAllByUserId(userId, pageable);
+
+        if (tripPage.isEmpty()) {
             throw new ResourceNotFoundException("No trips were found for the user with ID:: " + userId);
         }
 
-        // Return trips list
-        return trips.stream()
-                .map(trip -> new TripResponse(trip.getId(), trip.getName(), trip.getDestination(), trip.getStartDate(),
-                        trip.getEndDate()))
-                .collect(Collectors.toList());
+        return tripPage.map(trip -> new TripResponse(
+                trip.getId(),
+                trip.getName(),
+                trip.getDestination(),
+                trip.getStartDate(),
+                trip.getEndDate()
+        ));
     }
+
 
     // Create a new trip
     @Override

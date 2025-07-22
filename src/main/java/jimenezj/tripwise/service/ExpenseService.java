@@ -2,12 +2,13 @@ package jimenezj.tripwise.service;
 
 import jimenezj.tripwise.dto.expense.ExpenseRequest;
 import jimenezj.tripwise.dto.expense.ExpenseResponse;
-import java.util.List;
+import org.springframework.data.domain.Page;
+
 
 public interface ExpenseService {
 
     // Get all expenses by trip
-    List<ExpenseResponse> getExpensesByTrip(Long tripId);
+    Page<ExpenseResponse> getExpensesByTrip(Long tripId, int page, int size);
 
     // Create new expense for a trip
     ExpenseResponse createExpense(Long tripId, ExpenseRequest request);

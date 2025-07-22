@@ -12,10 +12,10 @@ import jimenezj.tripwise.repository.ExpenseRepository;
 import jimenezj.tripwise.repository.TripRepository;
 import jimenezj.tripwise.security.impl.UserDetailsServiceImpl;
 import jimenezj.tripwise.service.ExpenseService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ExpenseServiceImpl implements ExpenseService {
@@ -34,25 +34,30 @@ public class ExpenseServiceImpl implements ExpenseService {
                 this.expenseCategoryRepository = expenseCategoryRepository;
         }
 
-        // Get all expenses by trip id
+        //get all expense of a trip
         @Override
-        public List<ExpenseResponse> getExpensesByTrip(Long tripId) {
-                Long userId = userDetailsServiceImpl.getAuthenticatedUser().getId(); // get authenticated user
+        public Page<ExpenseResponse> getExpensesByTrip(Long tripId, int page, int size) {
+                Long userId = userDetailsServiceImpl.getAuthenticatedUser().getId(); //get user id 
+
+                //find trip by id
+                Trip trip = tripRepository.findById(tripId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
 
                 // Check if trip exists and belongs to the authenticated user
-                Trip trip = tripRepository.findById(tripId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Trip not found"));
-
                 if (!trip.getUser().getId().equals(userId)) {
                         throw new UnauthorizedException("You are not authorized to view expenses for this trip");
                 }
 
-                // Get all expenses by trip id
-                return expenseRepository
-                                .findAllByTripId(tripId).stream().map(expense -> new ExpenseResponse(expense.getId(),
-                                                expense.getDescription(), expense.getAmount(), expense.getCategory(),
-                                                expense.getDate()))
-                                .collect(Collectors.toList());
+                Pageable pageable = PageRequest.of(page, size);
+                Page<Expense> expensesPage = expenseRepository.findAllByTripId(tripId, pageable);
+
+                return expensesPage.map(expense -> new ExpenseResponse(
+                        expense.getId(),
+                        expense.getDescription(),
+                        expense.getAmount(),
+                        expense.getCategory(),
+                        expense.getDate()
+                ));
         }
 
         // Create expense for a trip

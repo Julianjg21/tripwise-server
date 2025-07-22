@@ -2,12 +2,13 @@ package jimenezj.tripwise.service;
 
 import jimenezj.tripwise.dto.trip.TripRequest;
 import jimenezj.tripwise.dto.trip.TripResponse;
+import org.springframework.data.domain.Page;
 
-import java.util.List;
+
 
 public interface TripService {
     // Get al trips of a user
-    List<TripResponse> getAllTrips();
+    Page<TripResponse> getAllTrips(int page, int size);
 
     // Create a new trip for a user
     TripResponse createTrip(TripRequest request);

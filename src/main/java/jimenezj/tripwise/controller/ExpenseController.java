@@ -7,6 +7,7 @@ import jimenezj.tripwise.dto.expense.ExpenseRequest;
 import jimenezj.tripwise.dto.expense.ExpenseResponse;
 import jimenezj.tripwise.service.ExpenseCategoryService;
 import jimenezj.tripwise.service.ExpenseService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,10 +28,15 @@ public class ExpenseController {
 
     // Get all expenses by trip
     @GetMapping("/trips/{tripId}/expenses")
-    public ResponseEntity<List<ExpenseResponse>> getExpensesByTrip(@PathVariable @Min(1) Long tripId) {
-        List<ExpenseResponse> expenseResponseList = expenseService.getExpensesByTrip(tripId);
-        return ResponseEntity.ok(expenseResponseList);
+    public ResponseEntity<Page<ExpenseResponse>> getExpensesByTrip(
+            @PathVariable @Min(1) Long tripId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<ExpenseResponse> expenseResponsePage = expenseService.getExpensesByTrip(tripId, page, size);
+        return ResponseEntity.ok(expenseResponsePage);
     }
+
 
     // Create expense for a trip
     @PostMapping("/trips/{tripId}/expenses")
