@@ -14,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
+import jimenezj.tripwise.security.CustomAuthenticationEntryPoint;
 
 import java.util.List;
 
@@ -23,14 +24,16 @@ public class SecurityConfig {
 
     private final AuthenticationProvider authenticationProvider;
     private final AuthTokenFilter authTokenFilter;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Value("${security.cors.allowed-origins}")
     String corsAllowedOrigin;
 
     // Constructor injection for dependencies
-    public SecurityConfig(AuthenticationProvider authenticationProvider, AuthTokenFilter authTokenFilter) {
+    public SecurityConfig(AuthenticationProvider authenticationProvider, AuthTokenFilter authTokenFilter, CustomAuthenticationEntryPoint customAuthenticationEntryPoint) {
         this.authenticationProvider = authenticationProvider;
         this.authTokenFilter = authTokenFilter;
+        this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
     }
 
     // Configures the security filter chain for the application
@@ -49,6 +52,9 @@ public class SecurityConfig {
                     config.setAllowedHeaders(List.of("*"));
                     return config;
                 }))
+                .exceptionHandling(exception -> exception // Handle authentication exceptions
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                ) 
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
